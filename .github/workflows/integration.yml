@@ -1,0 +1,69 @@
+name: Build
+on:
+  push:
+    branches: [master, main, dev**]
+    tags:
+      - "*"
+  pull_request:
+env:
+  COV_NODE_VERSION: 18
+  UPSTREAM_TAR: quipucords-ui-dist.tar
+
+jobs:
+  Integration-checks:
+    runs-on: ubuntu-latest
+    permissions:
+      # required for releasing artifacts
+      contents: write
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+      - name: Node.js modules cache
+        uses: actions/cache@v3
+        id: modules-cache
+        with:
+          path: ${{ github.workspace }}/node_modules
+          key: ${{ runner.os }}-${{ matrix.node-version }}-modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.node-version }}-modules
+      - name: Install Node.js packages
+        if: ${{ steps.modules-cache.outputs.cache-hit != 'true' }}
+        run: yarn install
+      - name: Lint and test
+        run: yarn test
+      - name: Code coverage
+        if: ${{ success() && contains(matrix.node-version, env.COV_NODE_VERSION) }}
+        uses: codecov/codecov-action@v3.1.4
+      - name: Confirm build integration
+        if: ${{ success() }}
+        run: yarn build
+      - name: Compress upstream assets
+        if: ${{ success() && startsWith(matrix.node-version, env.COV_NODE_VERSION) && startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          tar -cf ${UPSTREAM_TAR} dist
+          gzip -f --best ${UPSTREAM_TAR}
+
+      - name: Confirm brand integration
+        if: ${{ success() }}
+        run: yarn build:brand
+
+      - name: Release artifacts
+        uses: ncipollo/release-action@v1.13.0
+        if: ${{ success() && startsWith(matrix.node-version, env.COV_NODE_VERSION) && startsWith(github.ref, 'refs/tags/') }}
+        with:
+          artifacts: "${{ env.UPSTREAM_TAR }}.gz"
+          # set allow updates so we can create releases to trigger this
+          allowUpdates: true
+          # don't override what's set on the release
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          # required for publishing artifacts and updating the release
+          token: ${{ secrets.GITHUB_TOKEN }}
