@@ -850,10 +850,10 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.23.tgz#498e41218ab3b6a1419c735e5c6ae2c5ed609b6c"
   integrity sha512-C16M+IYz0rgRhWZdCmK+h58JMv8vijAA61gmz2rspCSwKwzBebpdcsiUmwrtJRdphuY30i6BSLEOP8ppbNLyLg==
 
-"@redhat-cloud-services/eslint-config-redhat-cloud-services@^1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@redhat-cloud-services/eslint-config-redhat-cloud-services/-/eslint-config-redhat-cloud-services-1.3.0.tgz#308862b11822c9a8f8026e373733b1607b2fc26a"
-  integrity sha512-/ceH7UeLMN+AoFdPDN0PeNgufiUKivU7wJ8ypqXINV1fKDVQf71mn48RjkdDCZ12/QHItHwaXFVpdnktBvRYHQ==
+"@redhat-cloud-services/eslint-config-redhat-cloud-services@^2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@redhat-cloud-services/eslint-config-redhat-cloud-services/-/eslint-config-redhat-cloud-services-2.0.3.tgz#9ba57b8bd367cb8c0bce302ea3a9d0247b385e37"
+  integrity sha512-kYj1IzjSH8v+Me884WbOrm7PdPbd05lSqRydJ5bIj7ydNg0fLySzX2vzvCdSfS3pbhYOlnYG7VbBJ5/Aml+1tg==
   dependencies:
     "@babel/eslint-parser" "^7.19.1"
     eslint-config-prettier "^8.5.0"
@@ -8283,6 +8283,7 @@ string-length@^4.0.1:
     strip-ansi "^6.0.0"
 
 "string-width-cjs@npm:string-width@^4.2.0", "string-width@^1.0.2 || 2 || 3 || 4", string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
+  name string-width-cjs
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -9348,6 +9349,7 @@ wildcard@^2.0.0:
   integrity sha512-CC1bOL87PIWSBhDcTrdeLo6eGT7mCFtrg0uIJtqJUFyK+eJnzl8A1niH56uu7KMa5XFrtiV+AQuHO3n7DsHnLQ==
 
 "wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
+  name wrap-ansi-cjs
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
