@@ -430,13 +430,13 @@ const SourcesListView: React.FunctionComponent = () => {
                       source.connection?.source_systems_unreachable ?? 0
                     )}
                   </Td> */}
-                  <Td {...getTdProps({ columnKey: 'scan' })}>
+                  <Td isActionCell {...getTdProps({ columnKey: 'scan' })}>
                     <Button variant={ButtonVariant.link} onClick={() => onScanSource(source)}>
                       Scan
                     </Button>
                   </Td>
                 </TableRowContentWithBatteries>
-                <Td {...getTdProps({ columnKey: 'actions' })}>
+                <Td isActionCell {...getTdProps({ columnKey: 'actions' })}>
                   <SourceActionMenu source={source} />
                 </Td>
               </Tr>
