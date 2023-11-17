@@ -18,6 +18,10 @@ import {
   EmptyStateIcon,
   Flex,
   FlexItem,
+  List,
+  ListItem,
+  Modal,
+  ModalVariant,
   PageSection,
   Pagination,
   Title,
@@ -51,6 +55,7 @@ const SourceTypeLabels = {
 const SourcesListView: React.FunctionComponent = () => {
   const { t } = useTranslation();
   const [refreshTime, setRefreshTime] = React.useState<Date | null>();
+  const [credentialsSelected, setCredentialsSelected] = React.useState<any[]>([]);
   const [sortColumn] = useSearchParam('sortColumn') || ['name'];
   const [sortDirection] = useSearchParam('sortDirection') || ['asc'];
   const [filters] = useSearchParam('filters');
@@ -177,89 +182,7 @@ const SourcesListView: React.FunctionComponent = () => {
       //   setRefreshTime(new Date());
       //   return res.data;
       // });
-      return {
-        "count": 2,
-        "next": null,
-        "previous": null,
-        "results": [
-            {
-                "id": 1,
-                "name": "Peripherals",
-                "source_type": "openshift",
-                "port": 443,
-                "hosts": [
-                    "4444"
-                ],
-                "options": {
-                    "ssl_protocol": "SSLv23",
-                    "ssl_cert_verify": true
-                },
-                "credentials": [
-                    {
-                        "id": 1,
-                        "name": "Peripherals"
-                    }
-                ],
-                "connection": {
-                    "id": 1,
-                    "start_time": "2023-11-15T18:18:31.562241",
-                    "end_time": "2023-11-15T18:18:31.636013",
-                    "systems_count": 1,
-                    "systems_scanned": 0,
-                    "systems_failed": 0,
-                    "systems_unreachable": 1,
-                    "system_fingerprint_count": 0,
-                    "status_details": {
-                        "job_status_message": "The following tasks failed: 1",
-                        "task_1_status_message": "Unable to connect to OpenShift host."
-                    },
-                    "status": "failed",
-                    "source_systems_count": 1,
-                    "source_systems_scanned": 0,
-                    "source_systems_failed": 0,
-                    "source_systems_unreachable": 1
-                }
-            },
-            {
-                "id": 2,
-                "name": "vcsource",
-                "source_type": "vcenter",
-                "port": 443,
-                "hosts": [
-                    "vcenter.toledo.satellite.lab.eng.rdu2.redhat.com"
-                ],
-                "options": {
-                    "ssl_protocol": "SSLv23",
-                    "ssl_cert_verify": false
-                },
-                "credentials": [
-                    {
-                        "id": 2,
-                        "name": "vcenter pass"
-                    }
-                ],
-                "connection": {
-                    "id": 3,
-                    "report_id": 1,
-                    "start_time": "2023-11-15T19:23:44.062270",
-                    "end_time": "2023-11-15T19:23:48.851240",
-                    "systems_count": 160,
-                    "systems_scanned": 160,
-                    "systems_failed": 0,
-                    "systems_unreachable": 0,
-                    "system_fingerprint_count": 160,
-                    "status_details": {
-                        "job_status_message": "Job is complete."
-                    },
-                    "status": "completed",
-                    "source_systems_count": 160,
-                    "source_systems_scanned": 160,
-                    "source_systems_failed": 0,
-                    "source_systems_unreachable": 0
-                }
-            }
-        ]
-    }
+      return sourcesData;
     }
   });
 
@@ -372,16 +295,11 @@ const SourcesListView: React.FunctionComponent = () => {
       context: ['status', source.connection.status, 'sources']
     });
     return (
-      <Flex gap={{ default: 'gapSm' }}>
-        <FlexItem>
-          <ContextIcon symbol={ContextIconVariant[source.connection.status]} />
-          {' '}{statusString}{' '}
-          {getTimeDisplayHowLongAgo(scanTime)}
-        </FlexItem>
-        <FlexItem>
-
-        </FlexItem>
-      </Flex>
+      <Button variant={ButtonVariant.link}>
+        <ContextIcon symbol={ContextIconVariant[source.connection.status]} />
+        {' '}{statusString}{' '}
+        {getTimeDisplayHowLongAgo(scanTime)}
+      </Button>
     );
   };
 
@@ -424,7 +342,10 @@ const SourcesListView: React.FunctionComponent = () => {
                   <Td {...getTdProps({ columnKey: 'type' })}>
                     {SourceTypeLabels[source.source_type]}
                   </Td>
-                  <Td {...getTdProps({ columnKey: 'credentials' })}>{source.credentials.length}</Td>
+                  <Td {...getTdProps({ columnKey: 'credentials' })}><Button variant={ButtonVariant.link} onClick={() => {
+                    console.log(source.credentials);
+                    setCredentialsSelected(source.credentials)
+                  }}>{source.credentials.length}</Button></Td>
                   {/* <Td {...getTdProps({ columnKey: 'unreachableSystems' })}>
                     {helpers.devModeNormalizeCount(
                       source.connection?.source_systems_unreachable ?? 0
@@ -450,8 +371,114 @@ const SourcesListView: React.FunctionComponent = () => {
         {...paginationProps}
         widgetId="server-paginated-example-pagination"
       />
+      {credentialsSelected.length && (
+          <Modal
+            variant={ModalVariant.small}
+            title="Credentials"
+            isOpen={!!credentialsSelected}
+            onClose={() => setCredentialsSelected([])}
+            actions={[
+              <Button key="cancel" variant="secondary" onClick={() => setCredentialsSelected([])}>
+                Close
+              </Button>
+            ]}
+          >
+            <List isPlain isBordered>
+              {credentialsSelected.map((c, i) => (
+                <ListItem>
+                  {c.name}
+                </ListItem>
+              ))}
+            </List>
+          </Modal>
+      )}
+
     </PageSection>
   );
 };
 
 export default SourcesListView;
+
+const sourcesData = {
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+      {
+          "id": 1,
+          "name": "Peripherals",
+          "source_type": "openshift",
+          "port": 443,
+          "hosts": [
+              "4444"
+          ],
+          "options": {
+              "ssl_protocol": "SSLv23",
+              "ssl_cert_verify": true
+          },
+          "credentials": [
+              {
+                  "id": 1,
+                  "name": "Peripherals"
+              }
+          ],
+          "connection": {
+              "id": 1,
+              "start_time": "2023-11-15T18:18:31.562241",
+              "end_time": "2023-11-15T18:18:31.636013",
+              "systems_count": 1,
+              "systems_scanned": 0,
+              "systems_failed": 0,
+              "systems_unreachable": 1,
+              "system_fingerprint_count": 0,
+              "status_details": {
+                  "job_status_message": "The following tasks failed: 1",
+                  "task_1_status_message": "Unable to connect to OpenShift host."
+              },
+              "status": "failed",
+              "source_systems_count": 1,
+              "source_systems_scanned": 0,
+              "source_systems_failed": 0,
+              "source_systems_unreachable": 1
+          }
+      },
+      {
+          "id": 2,
+          "name": "vcsource",
+          "source_type": "vcenter",
+          "port": 443,
+          "hosts": [
+              "vcenter.toledo.satellite.lab.eng.rdu2.redhat.com"
+          ],
+          "options": {
+              "ssl_protocol": "SSLv23",
+              "ssl_cert_verify": false
+          },
+          "credentials": [
+              {
+                  "id": 2,
+                  "name": "vcenter pass"
+              }
+          ],
+          "connection": {
+              "id": 3,
+              "report_id": 1,
+              "start_time": "2023-11-15T19:23:44.062270",
+              "end_time": "2023-11-15T19:23:48.851240",
+              "systems_count": 160,
+              "systems_scanned": 160,
+              "systems_failed": 0,
+              "systems_unreachable": 0,
+              "system_fingerprint_count": 160,
+              "status_details": {
+                  "job_status_message": "Job is complete."
+              },
+              "status": "completed",
+              "source_systems_count": 160,
+              "source_systems_scanned": 160,
+              "source_systems_failed": 0,
+              "source_systems_unreachable": 0
+          }
+      }
+  ]
+};
