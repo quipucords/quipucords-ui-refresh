@@ -16,8 +16,6 @@ import {
   Divider,
   EmptyState,
   EmptyStateIcon,
-  Flex,
-  FlexItem,
   List,
   ListItem,
   Modal,
@@ -56,6 +54,7 @@ const SourcesListView: React.FunctionComponent = () => {
   const { t } = useTranslation();
   const [refreshTime, setRefreshTime] = React.useState<Date | null>();
   const [credentialsSelected, setCredentialsSelected] = React.useState<any[]>([]);
+  const [connectionsSelected, setConnectionsSelected] = React.useState<any[]>([]);
   const [sortColumn] = useSearchParam('sortColumn') || ['name'];
   const [sortDirection] = useSearchParam('sortDirection') || ['asc'];
   const [filters] = useSearchParam('filters');
@@ -295,7 +294,9 @@ const SourcesListView: React.FunctionComponent = () => {
       context: ['status', source.connection.status, 'sources']
     });
     return (
-      <Button variant={ButtonVariant.link}>
+      <Button variant={ButtonVariant.link} onClick={() => {
+        setConnectionsSelected(['stuff here, need connection data'])
+      }}>
         <ContextIcon symbol={ContextIconVariant[source.connection.status]} />
         {' '}{statusString}{' '}
         {getTimeDisplayHowLongAgo(scanTime)}
@@ -343,7 +344,6 @@ const SourcesListView: React.FunctionComponent = () => {
                     {SourceTypeLabels[source.source_type]}
                   </Td>
                   <Td {...getTdProps({ columnKey: 'credentials' })}><Button variant={ButtonVariant.link} onClick={() => {
-                    console.log(source.credentials);
                     setCredentialsSelected(source.credentials)
                   }}>{source.credentials.length}</Button></Td>
                   {/* <Td {...getTdProps({ columnKey: 'unreachableSystems' })}>
@@ -371,7 +371,7 @@ const SourcesListView: React.FunctionComponent = () => {
         {...paginationProps}
         widgetId="server-paginated-example-pagination"
       />
-      {credentialsSelected.length && (
+      {!!credentialsSelected.length && (
           <Modal
             variant={ModalVariant.small}
             title="Credentials"
@@ -387,6 +387,27 @@ const SourcesListView: React.FunctionComponent = () => {
               {credentialsSelected.map((c, i) => (
                 <ListItem>
                   {c.name}
+                </ListItem>
+              ))}
+            </List>
+          </Modal>
+      )}
+      {!!connectionsSelected.length && (
+          <Modal
+            variant={ModalVariant.small}
+            title="Source Name Goes Here"
+            isOpen={!!connectionsSelected}
+            onClose={() => setConnectionsSelected([])}
+            actions={[
+              <Button key="cancel" variant="secondary" onClick={() => setConnectionsSelected([])}>
+                Close
+              </Button>
+            ]}
+          >
+            <List isPlain isBordered>
+              {connectionsSelected.map((c, i) => (
+                <ListItem>
+                  {c}
                 </ListItem>
               ))}
             </List>
