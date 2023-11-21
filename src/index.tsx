@@ -1,5 +1,6 @@
 import React from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ReactDOM from 'react-dom/client';
 import App from './app/App';
 import SessionProvider from './components/sessionContext/SessionProvider';
@@ -23,10 +24,11 @@ const queryClient = new QueryClient();
 
 root.render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient} contextSharing={true} >
       <SessionProvider>
         <App />
       </SessionProvider>
+      <ReactQueryDevtools />
     </QueryClientProvider>
   </React.StrictMode>
 );
