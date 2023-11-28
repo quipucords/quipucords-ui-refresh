@@ -177,11 +177,12 @@ const SourcesListView: React.FunctionComponent = () => {
     refetchOnWindowFocus: !helpers.DEV_MODE,
     queryFn: () => {
       console.log(`Query: `, currentQuery.current);
-      // return axios.get(currentQuery.current).then(res => {
-      //   setRefreshTime(new Date());
-      //   return res.data;
-      // });
-      return sourcesData;
+      return axios.get(currentQuery.current, { headers: {"Authorization": 'Token 5a8113a8a4951e1d2c253cadc0a17e90b289a736'}})
+        .then(res => {
+          setRefreshTime(new Date());
+          return res.data;
+        })
+        .catch(err => console.error(err));
     }
   });
 
@@ -420,86 +421,88 @@ const SourcesListView: React.FunctionComponent = () => {
 
 export default SourcesListView;
 
-const sourcesData = {
-  "count": 2,
-  "next": null,
-  "previous": null,
-  "results": [
-      {
-          "id": 1,
-          "name": "Peripherals",
-          "source_type": "openshift",
-          "port": 443,
-          "hosts": [
-              "4444"
-          ],
-          "options": {
-              "ssl_protocol": "SSLv23",
-              "ssl_cert_verify": true
-          },
-          "credentials": [
-              {
-                  "id": 1,
-                  "name": "Peripherals"
-              }
-          ],
-          "connection": {
-              "id": 1,
-              "start_time": "2023-11-15T18:18:31.562241",
-              "end_time": "2023-11-15T18:18:31.636013",
-              "systems_count": 1,
-              "systems_scanned": 0,
-              "systems_failed": 0,
-              "systems_unreachable": 1,
-              "system_fingerprint_count": 0,
-              "status_details": {
-                  "job_status_message": "The following tasks failed: 1",
-                  "task_1_status_message": "Unable to connect to OpenShift host."
-              },
-              "status": "failed",
-              "source_systems_count": 1,
-              "source_systems_scanned": 0,
-              "source_systems_failed": 0,
-              "source_systems_unreachable": 1
-          }
-      },
-      {
-          "id": 2,
-          "name": "vcsource",
-          "source_type": "vcenter",
-          "port": 443,
-          "hosts": [
-              "vcenter.toledo.satellite.lab.eng.rdu2.redhat.com"
-          ],
-          "options": {
-              "ssl_protocol": "SSLv23",
-              "ssl_cert_verify": false
-          },
-          "credentials": [
-              {
-                  "id": 2,
-                  "name": "vcenter pass"
-              }
-          ],
-          "connection": {
-              "id": 3,
-              "report_id": 1,
-              "start_time": "2023-11-15T19:23:44.062270",
-              "end_time": "2023-11-15T19:23:48.851240",
-              "systems_count": 160,
-              "systems_scanned": 160,
-              "systems_failed": 0,
-              "systems_unreachable": 0,
-              "system_fingerprint_count": 160,
-              "status_details": {
-                  "job_status_message": "Job is complete."
-              },
-              "status": "completed",
-              "source_systems_count": 160,
-              "source_systems_scanned": 160,
-              "source_systems_failed": 0,
-              "source_systems_unreachable": 0
-          }
-      }
-  ]
-};
+
+
+  // const sourcesData = {
+  //   "count": 2,
+  //   "next": null,
+  //   "previous": null,
+  //   "results": [
+  //       {
+  //           "id": 1,
+  //           "name": "Peripherals",
+  //           "source_type": "openshift",
+  //           "port": 443,
+  //           "hosts": [
+  //               "4444"
+  //           ],
+  //           "options": {
+  //               "ssl_protocol": "SSLv23",
+  //               "ssl_cert_verify": true
+  //           },
+  //           "credentials": [
+  //               {
+  //                   "id": 1,
+  //                   "name": "Peripherals"
+  //               }
+  //           ],
+  //           "connection": {
+  //               "id": 1,
+  //               "start_time": "2023-11-15T18:18:31.562241",
+  //               "end_time": "2023-11-15T18:18:31.636013",
+  //               "systems_count": 1,
+  //               "systems_scanned": 0,
+  //               "systems_failed": 0,
+  //               "systems_unreachable": 1,
+  //               "system_fingerprint_count": 0,
+  //               "status_details": {
+  //                   "job_status_message": "The following tasks failed: 1",
+  //                   "task_1_status_message": "Unable to connect to OpenShift host."
+  //               },
+  //               "status": "failed",
+  //               "source_systems_count": 1,
+  //               "source_systems_scanned": 0,
+  //               "source_systems_failed": 0,
+  //               "source_systems_unreachable": 1
+  //           }
+  //       },
+  //       {
+  //           "id": 2,
+  //           "name": "vcsource",
+  //           "source_type": "vcenter",
+  //           "port": 443,
+  //           "hosts": [
+  //               "vcenter.toledo.satellite.lab.eng.rdu2.redhat.com"
+  //           ],
+  //           "options": {
+  //               "ssl_protocol": "SSLv23",
+  //               "ssl_cert_verify": false
+  //           },
+  //           "credentials": [
+  //               {
+  //                   "id": 2,
+  //                   "name": "vcenter pass"
+  //               }
+  //           ],
+  //           "connection": {
+  //               "id": 3,
+  //               "report_id": 1,
+  //               "start_time": "2023-11-15T19:23:44.062270",
+  //               "end_time": "2023-11-15T19:23:48.851240",
+  //               "systems_count": 160,
+  //               "systems_scanned": 160,
+  //               "systems_failed": 0,
+  //               "systems_unreachable": 0,
+  //               "system_fingerprint_count": 160,
+  //               "status_details": {
+  //                   "job_status_message": "Job is complete."
+  //               },
+  //               "status": "completed",
+  //               "source_systems_count": 160,
+  //               "source_systems_scanned": 160,
+  //               "source_systems_failed": 0,
+  //               "source_systems_unreachable": 0
+  //           }
+  //       }
+  //   ]
+  // };

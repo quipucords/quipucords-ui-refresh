@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ReactDOM from 'react-dom/client';
@@ -21,6 +22,13 @@ if (process.env.NODE_ENV !== 'production') {
 
 const root = ReactDOM.createRoot(document.getElementById('root') as Element);
 const queryClient = new QueryClient();
+
+      //just to get token manually
+      axios.post('https://0.0.0.0:9443/api/v1/token/', {
+          username: 'admin',
+          password: 'pleasechangethispassword'
+        }
+      ).then(res => { console.log({res})});
 
 root.render(
   <React.StrictMode>
