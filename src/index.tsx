@@ -24,7 +24,7 @@ const queryClient = new QueryClient();
 
 root.render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient} contextSharing={true} >
+    <QueryClientProvider client={queryClient} >
       <SessionProvider>
         <App />
       </SessionProvider>
