@@ -16,18 +16,20 @@ import {
   Divider,
   EmptyState,
   EmptyStateIcon,
+  Icon,
   List,
   ListItem,
   Modal,
   ModalVariant,
   PageSection,
   Pagination,
+  TextContent,
   Title,
   Toolbar,
   ToolbarContent,
   ToolbarItem
 } from '@patternfly/react-core';
-import { CubesIcon } from '@patternfly/react-icons';
+import { CheckCircleIcon, CubesIcon, ExclamationCircleIcon, ExclamationTriangleIcon, WarningTriangleIcon } from '@patternfly/react-icons';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import axios from 'axios';
 import moment from 'moment';
@@ -37,6 +39,7 @@ import { i18nHelpers } from '../../components/i18n/i18nHelpers';
 import { RefreshTimeButton } from '../../components/refreshTimeButton/RefreshTimeButton';
 import useSearchParam from '../../hooks/useSearchParam';
 import { SourceType } from '../../types';
+import { ConnectionType } from '../../types';
 import SourceActionMenu from './SourceActionMenu';
 
 const SOURCES_LIST_QUERY = 'sourcesList';
@@ -54,7 +57,8 @@ const SourcesListView: React.FunctionComponent = () => {
   const { t } = useTranslation();
   const [refreshTime, setRefreshTime] = React.useState<Date | null>();
   const [credentialsSelected, setCredentialsSelected] = React.useState<any[]>([]);
-  const [connectionsSelected, setConnectionsSelected] = React.useState<any[]>([]);
+  const [connectionsSelected, setConnectionsSelected] = React.useState<SourceType>();
+  const [connectionsData, setConnectionsData] = React.useState<ConnectionType[]>([]);
   const [sortColumn] = useSearchParam('sortColumn') || ['name'];
   const [sortDirection] = useSearchParam('sortDirection') || ['asc'];
   const [filters] = useSearchParam('filters');
@@ -172,12 +176,13 @@ const SourcesListView: React.FunctionComponent = () => {
     }
   }, [filterValues, activeSort, sortDirection, sortColumn, pageNumber, itemsPerPage, queryClient]);
 
+
   const { isLoading, data } = useQuery({
     queryKey: [SOURCES_LIST_QUERY],
     refetchOnWindowFocus: !helpers.DEV_MODE,
     queryFn: () => {
       console.log(`Query: `, currentQuery.current);
-      return axios.get(currentQuery.current, { headers: {"Authorization": 'Token 5a8113a8a4951e1d2c253cadc0a17e90b289a736'}})
+      return axios.get(currentQuery.current, { headers: {"Authorization": 'Token 2f5718d8a2a9f2d286b115a7e5d9d96a57e0c96d'}})
         .then(res => {
           setRefreshTime(new Date());
           return res.data;
@@ -236,6 +241,10 @@ const SourcesListView: React.FunctionComponent = () => {
     }
   } = tableBatteries;
 
+  const onCloseConnections = () => {
+    setConnectionsSelected(undefined);
+    setConnectionsData([]);
+  }
   const onShowAddSourceWizard = () => {};
   const onScanSources = () => {};
   const onScanSource = (source: SourceType) => {
@@ -275,6 +284,17 @@ const SourcesListView: React.FunctionComponent = () => {
       </ToolbarContent>
     </Toolbar>
   );
+  
+  const showConnections = (source: SourceType) => {
+    axios.get(`https://0.0.0.0:9443/api/v1/jobs/${source.connection.id}/connection/?page=1&page_size=1000&ordering=name&source_type=${source.id}`,
+      { headers: {"Authorization": 'Token 2f5718d8a2a9f2d286b115a7e5d9d96a57e0c96d'}})
+        .then(res => {
+          console.log(res);
+          setConnectionsData(res.data.results);
+        })
+        .catch(err => console.error(err));
+    setConnectionsSelected(source);
+  };
 
   const getTimeDisplayHowLongAgo =
     process.env.REACT_APP_ENV !== 'test'
@@ -296,7 +316,7 @@ const SourcesListView: React.FunctionComponent = () => {
     });
     return (
       <Button variant={ButtonVariant.link} onClick={() => {
-        setConnectionsSelected(['stuff here, need connection data'])
+        showConnections(source);
       }}>
         <ContextIcon symbol={ContextIconVariant[source.connection.status]} />
         {' '}{statusString}{' '}
@@ -393,23 +413,34 @@ const SourcesListView: React.FunctionComponent = () => {
             </List>
           </Modal>
       )}
-      {!!connectionsSelected.length && (
+      {connectionsSelected && (
           <Modal
             variant={ModalVariant.small}
-            title="Source Name Goes Here"
+            title={connectionsSelected.name}
             isOpen={!!connectionsSelected}
-            onClose={() => setConnectionsSelected([])}
+            onClose={onCloseConnections}
             actions={[
-              <Button key="cancel" variant="secondary" onClick={() => setConnectionsSelected([])}>
+              <Button key="cancel" variant="secondary" onClick={onCloseConnections}>
                 Close
               </Button>
             ]}
           >
+            <TextContent style={{margin: '1em 0'}}><h5><Icon status="danger"><ExclamationCircleIcon /></Icon> Failed connections</h5></TextContent>
             <List isPlain isBordered>
-              {connectionsSelected.map((c, i) => (
-                <ListItem>
-                  {c}
-                </ListItem>
+            {connectionsData.filter(c => c.status === "failed").map((con) => (
+                <ListItem>{con.name}</ListItem>
+              ))}
+            </List>
+            <TextContent style={{margin: '1em 0'}}><h5><Icon status="warning"><ExclamationTriangleIcon /></Icon> Unreachable systems</h5></TextContent>
+            <List isPlain isBordered>
+            {connectionsData.filter(c => !["success", "failed"].includes(c.status)).map((con) => (
+                <ListItem>{con.name}</ListItem>
+              ))}
+            </List>
+            <TextContent style={{margin: '1em 0'}}><h5><Icon status="success"><CheckCircleIcon /></Icon>  Successful connections</h5></TextContent>
+            <List isPlain isBordered>
+              {connectionsData.filter(c => c.status === "success").map((con) => (
+                <ListItem>{con.name}</ListItem>
               ))}
             </List>
           </Modal>

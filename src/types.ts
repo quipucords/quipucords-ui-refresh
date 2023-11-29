@@ -3,7 +3,7 @@ export type CredentialType = {
   name: string;
 };
 
-export type ConnectionType = {
+export type SourceConnectionType = {
   end_time: string;
   id: number;
   report_id: number;
@@ -29,5 +29,19 @@ export type SourceType = {
   hosts: string[];
   exclude_hosts: string[];
   credentials: CredentialType[];
-  connection: ConnectionType;
+  connection: SourceConnectionType;
+};
+
+export type ConnectionType = {
+  name: string,
+  status: string,
+  source: {
+    id: number,
+    name: string,
+    source_type: string,
+  },
+  credentials: {
+    id: number,
+    name: string,
+  },
 };
