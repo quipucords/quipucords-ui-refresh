@@ -4,6 +4,7 @@ import NotFound from '../pages/notFound/NotFound';
 
 const Sources = React.lazy(() => import('../pages/sources/SourcesListView'));
 const Scans = React.lazy(() => import('../pages/scans/ScansListView'));
+const Credentials = React.lazy(() => import('../pages/credentials/CredentialsListView'))
 
 export interface IAppRoute {
   id: string;
@@ -36,6 +37,13 @@ const routes: AppRouteConfig[] = [
     label: 'Scans',
     path: '/scans',
     title: 'Scans'
+  },
+  {
+    id: 'credentials',
+    component: <Credentials />,
+    label: 'Credentials',
+    path: '/credentials',
+    title: 'Credentials'
   }
 ];
 
