@@ -303,7 +303,7 @@ const SourcesListView: React.FunctionComponent = () => {
 
   const getTimeDisplayHowLongAgo =
     process.env.REACT_APP_ENV !== 'test'
-      ? (timestamp: boolean | undefined) => moment().utc(timestamp).utcOffset(moment().utcOffset()).fromNow()
+      ? (timestamp) => moment().utc(timestamp).utcOffset(moment().utcOffset()).fromNow()
       : () => 'a day ago';
 
   const renderConnection = (source: SourceType): React.ReactNode => {
