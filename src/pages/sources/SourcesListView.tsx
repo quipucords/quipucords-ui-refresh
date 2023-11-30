@@ -378,7 +378,7 @@ const SourcesListView: React.FunctionComponent = () => {
                     )}
                   </Td> */}
                   <Td isActionCell {...getTdProps({ columnKey: 'scan' })}>
-                    <Button variant={ButtonVariant.link} onClick={() => onScanSource(source)}>
+                    <Button isDisabled={source.connection.status === "pending"} variant={ButtonVariant.link} onClick={() => onScanSource(source)}>
                       Scan
                     </Button>
                   </Td>
