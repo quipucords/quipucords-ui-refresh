@@ -58,13 +58,14 @@ const SourcesListView: React.FunctionComponent = () => {
   const [refreshTime, setRefreshTime] = React.useState<Date | null>();
   const [credentialsSelected, setCredentialsSelected] = React.useState<any[]>([]);
   const [connectionsSelected, setConnectionsSelected] = React.useState<SourceType>();
-  const [connectionsData, setConnectionsData] = React.useState<ConnectionType[]>([]);
+  const [connectionsData, setConnectionsData] = React.useState<{successful: ConnectionType[], failure: ConnectionType[], unreachable: ConnectionType[]}>({successful: [], failure: [], unreachable: []});
   const [sortColumn] = useSearchParam('sortColumn') || ['name'];
   const [sortDirection] = useSearchParam('sortDirection') || ['asc'];
   const [filters] = useSearchParam('filters');
   const [selectedItems, setSelectedItems] = React.useState<SourceType[]>([]);
   const queryClient = useQueryClient();
   const currentQuery = React.useRef<string>('');
+  const emptyConnectionData = {successful: [], failure: [], unreachable: []};
 
   const onRefresh = () => {
     queryClient.invalidateQueries({ queryKey: [SOURCES_LIST_QUERY] });
@@ -243,7 +244,7 @@ const SourcesListView: React.FunctionComponent = () => {
 
   const onCloseConnections = () => {
     setConnectionsSelected(undefined);
-    setConnectionsData([]);
+    setConnectionsData(emptyConnectionData);
   }
   const onShowAddSourceWizard = () => {};
   const onScanSources = () => {};
@@ -290,7 +291,11 @@ const SourcesListView: React.FunctionComponent = () => {
       { headers: {"Authorization": 'Token 2f5718d8a2a9f2d286b115a7e5d9d96a57e0c96d'}})
         .then(res => {
           console.log(res);
-          setConnectionsData(res.data.results);
+          setConnectionsData({
+            successful: res.data.results.filter((c: { status: string; }) => c.status === 'success'),
+            failure: res.data.results.filter((c: { status: string; }) => c.status === 'failure'),
+            unreachable: res.data.results.filter((c: { status: string; }) => !['success','failure'].includes(c.status))
+          });
         })
         .catch(err => console.error(err));
     setConnectionsSelected(source);
@@ -298,7 +303,7 @@ const SourcesListView: React.FunctionComponent = () => {
 
   const getTimeDisplayHowLongAgo =
     process.env.REACT_APP_ENV !== 'test'
-      ? timestamp => moment().utc(timestamp).utcOffset(moment().utcOffset()).fromNow()
+      ? (timestamp: boolean | undefined) => moment().utc(timestamp).utcOffset(moment().utcOffset()).fromNow()
       : () => 'a day ago';
 
   const renderConnection = (source: SourceType): React.ReactNode => {
@@ -427,21 +432,21 @@ const SourcesListView: React.FunctionComponent = () => {
           >
             <TextContent style={{margin: '1em 0'}}><h5><Icon status="danger"><ExclamationCircleIcon /></Icon> Failed connections</h5></TextContent>
             <List isPlain isBordered>
-            {connectionsData.filter(c => c.status === "failed").map((con) => (
+            {connectionsData.failure.length ? connectionsData.failure.map((con) => (
                 <ListItem>{con.name}</ListItem>
-              ))}
+              )) : (<ListItem>N/A</ListItem>)}
             </List>
             <TextContent style={{margin: '1em 0'}}><h5><Icon status="warning"><ExclamationTriangleIcon /></Icon> Unreachable systems</h5></TextContent>
             <List isPlain isBordered>
-            {connectionsData.filter(c => !["success", "failed"].includes(c.status)).map((con) => (
+            {connectionsData.unreachable.length ? connectionsData.unreachable.map((con) => (
                 <ListItem>{con.name}</ListItem>
-              ))}
+              )) : (<ListItem>N/A</ListItem>)}
             </List>
             <TextContent style={{margin: '1em 0'}}><h5><Icon status="success"><CheckCircleIcon /></Icon>  Successful connections</h5></TextContent>
             <List isPlain isBordered>
-              {connectionsData.filter(c => c.status === "success").map((con) => (
+            {connectionsData.successful.length ? connectionsData.successful.map((con) => (
                 <ListItem>{con.name}</ListItem>
-              ))}
+              )) : (<ListItem>N/A</ListItem>)}
             </List>
           </Modal>
       )}
