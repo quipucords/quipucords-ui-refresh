@@ -11,11 +11,16 @@ import {
   useTableState
 } from '@mturley-latest/react-table-batteries';
 import {
+  ActionGroup,
   Button,
   ButtonVariant,
+  Checkbox,
   Divider,
   EmptyState,
   EmptyStateIcon,
+  Form,
+  FormContextProvider,
+  FormGroup,
   Icon,
   List,
   ListItem,
@@ -23,7 +28,9 @@ import {
   ModalVariant,
   PageSection,
   Pagination,
+  TextArea,
   TextContent,
+  TextInput,
   Title,
   Toolbar,
   ToolbarContent,
@@ -58,6 +65,7 @@ const SourcesListView: React.FunctionComponent = () => {
   const [refreshTime, setRefreshTime] = React.useState<Date | null>();
   const [credentialsSelected, setCredentialsSelected] = React.useState<any[]>([]);
   const [connectionsSelected, setConnectionsSelected] = React.useState<SourceType>();
+  const [scanSelected, setScanSelected] = React.useState<SourceType>();
   const [connectionsData, setConnectionsData] = React.useState<{successful: ConnectionType[], failure: ConnectionType[], unreachable: ConnectionType[]}>({successful: [], failure: [], unreachable: []});
   const [sortColumn] = useSearchParam('sortColumn') || ['name'];
   const [sortDirection] = useSearchParam('sortDirection') || ['asc'];
@@ -145,6 +153,8 @@ const SourcesListView: React.FunctionComponent = () => {
     initialFilterValues: filters ? JSON.parse(filters) : undefined
   });
 
+  const token = "6299d860324e76ce71cd1c4f8443c95f29fc2321";
+
   const {
     filterState: { filterValues },
     sortState: { activeSort },
@@ -183,7 +193,7 @@ const SourcesListView: React.FunctionComponent = () => {
     refetchOnWindowFocus: !helpers.DEV_MODE,
     queryFn: () => {
       console.log(`Query: `, currentQuery.current);
-      return axios.get(currentQuery.current, { headers: {"Authorization": 'Token 2f5718d8a2a9f2d286b115a7e5d9d96a57e0c96d'}})
+      return axios.get(currentQuery.current, { headers: {"Authorization": `Token ${token}`}})
         .then(res => {
           setRefreshTime(new Date());
           return res.data;
@@ -249,8 +259,9 @@ const SourcesListView: React.FunctionComponent = () => {
   const onShowAddSourceWizard = () => {};
   const onScanSources = () => {};
   const onScanSource = (source: SourceType) => {
-    alert(`Scan: ${source.name}`);
+    setScanSelected(source);
   };
+  const onRunScan = () => {};
 
   const renderToolbar = () => (
     <Toolbar {...toolbarProps}>
@@ -288,7 +299,7 @@ const SourcesListView: React.FunctionComponent = () => {
   
   const showConnections = (source: SourceType) => {
     axios.get(`https://0.0.0.0:9443/api/v1/jobs/${source.connection.id}/connection/?page=1&page_size=1000&ordering=name&source_type=${source.id}`,
-      { headers: {"Authorization": 'Token 2f5718d8a2a9f2d286b115a7e5d9d96a57e0c96d'}})
+      { headers: {"Authorization": `Token ${token}`}})
         .then(res => {
           console.log(res);
           setConnectionsData({
@@ -420,7 +431,7 @@ const SourcesListView: React.FunctionComponent = () => {
       )}
       {connectionsSelected && (
           <Modal
-            variant={ModalVariant.small}
+            variant={ModalVariant.medium}
             title={connectionsSelected.name}
             isOpen={!!connectionsSelected}
             onClose={onCloseConnections}
@@ -450,7 +461,73 @@ const SourcesListView: React.FunctionComponent = () => {
             </List>
           </Modal>
       )}
-
+      {scanSelected && (
+          <Modal
+            variant={ModalVariant.small}
+            title="Scan"
+            isOpen={!!scanSelected}
+            onClose={() => setScanSelected(undefined)}
+            actions={[
+              <Button key="submit" variant="primary" onClick={onRunScan}>
+                Save
+              </Button>,
+              <Button key="cancel" variant="secondary" onClick={() => setScanSelected(undefined)}>
+                Cancel
+              </Button>
+            ]}
+          >
+            <FormContextProvider>
+            {({ setValue, getValue, setError, values, errors }) => (
+                <Form isHorizontal>
+                  <FormGroup label="Name" isRequired fieldId="scan-name">
+                    <TextInput
+                      // value={"name"}
+                      placeholder="Enter a name for the scan."
+                      isRequired
+                      type="text"
+                      id="scan-name"
+                      name="scan-name"
+                      onChange={() => {}}
+                    />
+                  </FormGroup>
+                  <FormGroup label="Sources" isRequired fieldId="scan-sources">
+                    <TextArea
+                      value={"sources"}
+                      isDisabled
+                      isRequired
+                      id="scan-sources"
+                      name="scan-sources"
+                    />
+                  </FormGroup>
+                  <TextContent>Foo:{getValue('scan-name')}</TextContent>
+                  <FormGroup
+                    label="Deep scan for these products"
+                    isStack
+                    fieldId="scan-deep-scan"
+                    hasNoPaddingTop
+                    role="group"
+                  >
+                    <Checkbox label="JBoss EAP" id="alt-form-checkbox-1" name="alt-form-checkbox-1" />
+                    <Checkbox label="Fuse" id="alt-form-checkbox-2" name="alt-form-checkbox-2" />
+                    <Checkbox label="JBoss web server" id="alt-form-checkbox-3" name="alt-form-checkbox-3" />
+                    <Checkbox label="Decision manager" id="alt-form-checkbox-3" name="alt-form-checkbox-3" />
+                  </FormGroup>
+                  {getValue('scan-deep-scan') && <FormGroup label="scan-alt-scan" isRequired fieldId="scan-alt-scan">
+                    <TextArea
+                      // value={"sources"}
+                      id="scan-alt-scan"
+                      name="scan-alt-scan"
+                    />
+                  </FormGroup>}
+                  <ActionGroup>
+                    <Button variant="primary">Save</Button>
+                    <Button variant="link">Cancel</Button>
+                  </ActionGroup>
+                </Form>
+            )}
+            </FormContextProvider>
+          </Modal>
+      )}
     </PageSection>
   );
 };
