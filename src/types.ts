@@ -1,6 +1,19 @@
 export type CredentialType = {
   id: string;
   name: string;
+  created_at: Date;
+  updated_at: Date;
+  cred_type: string;
+  username: string;
+  password: string;
+  ssh_keyfile: string;
+  ssh_key: string;
+  auth_token: string;
+  ssh_passphrase: string;
+  become_method: string;
+  become_user: string;
+  become_password: string;
+  sources: SourceType[];
 };
 
 export type SourceConnectionType = {
