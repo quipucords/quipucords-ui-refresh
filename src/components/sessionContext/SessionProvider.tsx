@@ -44,13 +44,13 @@ const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) 
   useQuery({
     queryKey: [WHO_AM_I_QUERY],
     refetchOnWindowFocus: !helpers.DEV_MODE,
-    queryFn: () => {
-      return axios.get(process.env.REACT_APP_USER_SERVICE_CURRENT || '').then(res => {
-        if (res.data.username) {
-          setSessionData(prev => ({ ...prev, authorized: true, username: res.data.username }));
-        }
-      });
-    }
+    // queryFn: () => {
+    //   return axios.get(process.env.REACT_APP_USER_SERVICE_CURRENT || '').then(res => {
+    //     if (res.data.username) {
+    //       setSessionData(prev => ({ ...prev, authorized: true, username: res.data.username }));
+    //     }
+    //   });
+    // }
   });
 
   return <SessionContext.Provider value={sessionData}>{children}</SessionContext.Provider>;

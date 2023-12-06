@@ -33,7 +33,7 @@ const SourcesScanModal: React.FC<SourcesScanModalProps> = ({
                     jboss_eap: deepScans.includes('jboss_eap'),
                     jboss_fuse: deepScans.includes('jboss_fuse'),
                     jboss_ws: deepScans.includes('jboss_ws'),
-                    search_directories: values['scan-alt-scan'].split(',')
+                    search_directories: values['scan-alt-scan']?.split(',')
                 }
             }
         };

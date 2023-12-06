@@ -39,7 +39,8 @@ import {
   Title,
   Toolbar,
   ToolbarContent,
-  ToolbarItem
+  ToolbarItem,
+  getUniqueId
 } from '@patternfly/react-core';
 import { CheckCircleIcon, CubesIcon, ExclamationCircleIcon, ExclamationTriangleIcon, WarningTriangleIcon } from '@patternfly/react-icons';
 import { Table, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
@@ -279,6 +280,7 @@ const SourcesListView: React.FunctionComponent = () => {
   const onRunScan = (payload) => {
     axios.post(`https://0.0.0.0:9443/api/v1/scans/`, payload, { headers: {"Authorization": `Token ${token}`}})
         .then(res => {
+          addAlert(`${payload.name} started to scan`, 'success', getUniqueId());
           queryClient.invalidateQueries({ queryKey: [SOURCES_LIST_QUERY] });
           setScanSelected(undefined);
         })
@@ -493,6 +495,8 @@ const SourcesListView: React.FunctionComponent = () => {
       <AlertGroup isToast isLiveRegion>
         {alerts.map(({ key, variant, title }) => (
           <Alert
+            timeout={8000}
+            onTimeout={() => key && removeAlert(key)}
             variant={AlertVariant[variant || 'info']}
             title={title}
             actionClose={
