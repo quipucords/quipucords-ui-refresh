@@ -12,6 +12,11 @@ import {
 } from '@mturley-latest/react-table-batteries';
 import {
   ActionGroup,
+  Alert,
+  AlertActionCloseButton,
+  AlertGroup,
+  AlertProps,
+  AlertVariant,
   Button,
   ButtonVariant,
   Checkbox,
@@ -48,6 +53,7 @@ import useSearchParam from '../../hooks/useSearchParam';
 import { SourceType } from '../../types';
 import { ConnectionType } from '../../types';
 import SourceActionMenu from './SourceActionMenu';
+import SourcesScanModal from './SourcesScanModal';
 
 const SOURCES_LIST_QUERY = 'sourcesList';
 
@@ -62,10 +68,11 @@ const SourceTypeLabels = {
 
 const SourcesListView: React.FunctionComponent = () => {
   const { t } = useTranslation();
+  const [alerts, setAlerts] = React.useState<Partial<AlertProps>[]>([]);
   const [refreshTime, setRefreshTime] = React.useState<Date | null>();
   const [credentialsSelected, setCredentialsSelected] = React.useState<any[]>([]);
   const [connectionsSelected, setConnectionsSelected] = React.useState<SourceType>();
-  const [scanSelected, setScanSelected] = React.useState<SourceType>();
+  const [scanSelected, setScanSelected] = React.useState<SourceType[]>();
   const [connectionsData, setConnectionsData] = React.useState<{successful: ConnectionType[], failure: ConnectionType[], unreachable: ConnectionType[]}>({successful: [], failure: [], unreachable: []});
   const [sortColumn] = useSearchParam('sortColumn') || ['name'];
   const [sortDirection] = useSearchParam('sortDirection') || ['asc'];
@@ -77,6 +84,14 @@ const SourcesListView: React.FunctionComponent = () => {
 
   const onRefresh = () => {
     queryClient.invalidateQueries({ queryKey: [SOURCES_LIST_QUERY] });
+  };
+
+  const addAlert = (title: string, variant: AlertProps['variant'], key: React.Key) => {
+    setAlerts((prevAlerts) => [...prevAlerts, { title, variant, key }]);
+  };
+
+  const removeAlert = (key: React.Key) => {
+    setAlerts((prevAlerts) => [...prevAlerts.filter((alert) => alert.key !== key)]);
   };
 
   const tableState = useTableState({
@@ -259,9 +274,16 @@ const SourcesListView: React.FunctionComponent = () => {
   const onShowAddSourceWizard = () => {};
   const onScanSources = () => {};
   const onScanSource = (source: SourceType) => {
-    setScanSelected(source);
+    setScanSelected([source]);
   };
-  const onRunScan = () => {};
+  const onRunScan = (payload) => {
+    axios.post(`https://0.0.0.0:9443/api/v1/scans/`, payload, { headers: {"Authorization": `Token ${token}`}})
+        .then(res => {
+          queryClient.invalidateQueries({ queryKey: [SOURCES_LIST_QUERY] });
+          setScanSelected(undefined);
+        })
+        .catch(err => console.error(err));
+  };
 
   const renderToolbar = () => (
     <Toolbar {...toolbarProps}>
@@ -461,73 +483,29 @@ const SourcesListView: React.FunctionComponent = () => {
             </List>
           </Modal>
       )}
+
       {scanSelected && (
-          <Modal
-            variant={ModalVariant.small}
-            title="Scan"
-            isOpen={!!scanSelected}
-            onClose={() => setScanSelected(undefined)}
-            actions={[
-              <Button key="submit" variant="primary" onClick={onRunScan}>
-                Save
-              </Button>,
-              <Button key="cancel" variant="secondary" onClick={() => setScanSelected(undefined)}>
-                Cancel
-              </Button>
-            ]}
-          >
-            <FormContextProvider>
-            {({ setValue, getValue, setError, values, errors }) => (
-                <Form isHorizontal>
-                  <FormGroup label="Name" isRequired fieldId="scan-name">
-                    <TextInput
-                      // value={"name"}
-                      placeholder="Enter a name for the scan."
-                      isRequired
-                      type="text"
-                      id="scan-name"
-                      name="scan-name"
-                      onChange={() => {}}
-                    />
-                  </FormGroup>
-                  <FormGroup label="Sources" isRequired fieldId="scan-sources">
-                    <TextArea
-                      value={"sources"}
-                      isDisabled
-                      isRequired
-                      id="scan-sources"
-                      name="scan-sources"
-                    />
-                  </FormGroup>
-                  <TextContent>Foo:{getValue('scan-name')}</TextContent>
-                  <FormGroup
-                    label="Deep scan for these products"
-                    isStack
-                    fieldId="scan-deep-scan"
-                    hasNoPaddingTop
-                    role="group"
-                  >
-                    <Checkbox label="JBoss EAP" id="alt-form-checkbox-1" name="alt-form-checkbox-1" />
-                    <Checkbox label="Fuse" id="alt-form-checkbox-2" name="alt-form-checkbox-2" />
-                    <Checkbox label="JBoss web server" id="alt-form-checkbox-3" name="alt-form-checkbox-3" />
-                    <Checkbox label="Decision manager" id="alt-form-checkbox-3" name="alt-form-checkbox-3" />
-                  </FormGroup>
-                  {getValue('scan-deep-scan') && <FormGroup label="scan-alt-scan" isRequired fieldId="scan-alt-scan">
-                    <TextArea
-                      // value={"sources"}
-                      id="scan-alt-scan"
-                      name="scan-alt-scan"
-                    />
-                  </FormGroup>}
-                  <ActionGroup>
-                    <Button variant="primary">Save</Button>
-                    <Button variant="link">Cancel</Button>
-                  </ActionGroup>
-                </Form>
-            )}
-            </FormContextProvider>
-          </Modal>
+        <SourcesScanModal 
+          onClose={() => setScanSelected(undefined)}
+          onSubmit={onRunScan}
+          sources={scanSelected} />
       )}
+      <AlertGroup isToast isLiveRegion>
+        {alerts.map(({ key, variant, title }) => (
+          <Alert
+            variant={AlertVariant[variant || 'info']}
+            title={title}
+            actionClose={
+              <AlertActionCloseButton
+                title={title as string}
+                variantLabel={`${variant} alert`}
+                onClose={() => key && removeAlert(key)}
+            />
+          }
+          key={key}
+        />
+        ))}
+      </AlertGroup>
     </PageSection>
   );
 };
