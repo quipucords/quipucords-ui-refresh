@@ -172,7 +172,7 @@ const CredentialsListView: React.FunctionComponent = () => {
     }
   }, [filterValues, activeSort, sortDirection, sortColumn, pageNumber, itemsPerPage, queryClient]);
 
-  const token = "";
+  const token = localStorage.getItem("authToken");
 
   const { isLoading, data } = useQuery({
     queryKey: [CREDS_LIST_QUERY],

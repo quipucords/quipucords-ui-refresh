@@ -168,7 +168,7 @@ const SourcesListView: React.FunctionComponent = () => {
     initialFilterValues: filters ? JSON.parse(filters) : undefined
   });
 
-  const token = "";
+  const token = localStorage.getItem("authToken");
 
   const {
     filterState: { filterValues },
