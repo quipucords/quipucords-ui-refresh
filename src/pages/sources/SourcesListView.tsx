@@ -21,6 +21,7 @@ import {
   ButtonVariant,
   Checkbox,
   Divider,
+  DropdownItem,
   EmptyState,
   EmptyStateIcon,
   Form,
@@ -55,6 +56,8 @@ import { SourceType } from '../../types';
 import { ConnectionType } from '../../types';
 import SourceActionMenu from './SourceActionMenu';
 import SourcesScanModal from './SourcesScanModal';
+import { SimpleDropdown } from 'src/components/SimpleDropdown';
+import AddSourceModal from './AddSourceModal';
 
 const SOURCES_LIST_QUERY = 'sourcesList';
 
@@ -74,6 +77,7 @@ const SourcesListView: React.FunctionComponent = () => {
   const [credentialsSelected, setCredentialsSelected] = React.useState<any[]>([]);
   const [connectionsSelected, setConnectionsSelected] = React.useState<SourceType>();
   const [scanSelected, setScanSelected] = React.useState<SourceType[]>();
+  const [addSourceModal, setAddSourceModal] = React.useState<string>();
   const [connectionsData, setConnectionsData] = React.useState<{successful: ConnectionType[], failure: ConnectionType[], unreachable: ConnectionType[]}>({successful: [], failure: [], unreachable: []});
   const [sortColumn] = useSearchParam('sortColumn') || ['name'];
   const [sortDirection] = useSearchParam('sortDirection') || ['asc'];
@@ -286,6 +290,16 @@ const SourcesListView: React.FunctionComponent = () => {
         })
         .catch(err => console.error(err));
   };
+  const onAddSource = (payload) => {
+    console.log('addsource', payload);
+    // axios.post(`https://0.0.0.0:9443/api/v1/scans/`, payload, { headers: {"Authorization": `Token ${token}`}})
+    // .then(res => {
+    //   addAlert(`${payload.name} started to scan`, 'success', getUniqueId());
+    //   queryClient.invalidateQueries({ queryKey: [SOURCES_LIST_QUERY] });
+      setAddSourceModal(undefined);
+    // })
+    // .catch(err => console.error(err));
+  }
 
   const renderToolbar = () => (
     <Toolbar {...toolbarProps}>
@@ -295,9 +309,13 @@ const SourcesListView: React.FunctionComponent = () => {
         <Divider orientation={{ default: 'vertical' }} />
         <ToolbarItem>
           <RefreshTimeButton lastRefresh={refreshTime?.getTime() ?? 0} onRefresh={onRefresh} />
-          <Button className="pf-v5-u-mr-md" onClick={onShowAddSourceWizard} ouiaId="add_source">
-            {t('table.label', { context: 'add' })}
-          </Button>{' '}
+          <SimpleDropdown
+            label="Add Source"
+            variant="primary"
+            dropdownItems={['Network range', 'OpenShift', 'RHACS', 'Satellite', 'vCenter server', 'Ansible controller'].map(type => 
+              <DropdownItem onClick={() => setAddSourceModal(type)}>{type}</DropdownItem>
+            )}
+          />{' '}
           <Button
             variant={ButtonVariant.secondary}
             isDisabled={
@@ -484,6 +502,22 @@ const SourcesListView: React.FunctionComponent = () => {
               )) : (<ListItem>N/A</ListItem>)}
             </List>
           </Modal>
+      )}
+
+      {addSourceModal && (
+        <AddSourceModal
+          type={addSourceModal}
+          onClose={() => setAddSourceModal(undefined)}
+          onSubmit={onAddSource}
+        />
+        // <Modal
+        //   variant={ModalVariant.medium}
+        //   onClose={() => setAddSourceModal(undefined)}
+        //   isOpen={!!addSourceModal}
+        //   title={`Add sorce: ${addSourceModal}`}
+        // >
+        //   {addSourceModal}
+        // </Modal>
       )}
 
       {scanSelected && (
