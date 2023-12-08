@@ -13,6 +13,7 @@ export interface ISimpleDropdownProps {
     ariaLabel?: string;
     onSelect?: () => {};
     variant: 'default' | 'plain' | 'primary' | 'secondary';
+    isFullWidth?: boolean;
 }
 
 export const SimpleDropdown: React.FC<ISimpleDropdownProps> = ({
@@ -21,6 +22,7 @@ export const SimpleDropdown: React.FC<ISimpleDropdownProps> = ({
     ariaLabel,
     onSelect,
     variant,
+    isFullWidth
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -31,6 +33,7 @@ export const SimpleDropdown: React.FC<ISimpleDropdownProps> = ({
             onSelect={onSelect}
             toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
                 <MenuToggle
+                    isFullWidth={isFullWidth}
                     ref={toggleRef}
                     isExpanded={isOpen}
                     onClick={() => setIsOpen(!isOpen)}

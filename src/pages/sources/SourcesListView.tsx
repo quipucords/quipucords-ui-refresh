@@ -292,13 +292,13 @@ const SourcesListView: React.FunctionComponent = () => {
   };
   const onAddSource = (payload) => {
     console.log('addsource', payload);
-    // axios.post(`https://0.0.0.0:9443/api/v1/scans/`, payload, { headers: {"Authorization": `Token ${token}`}})
-    // .then(res => {
-    //   addAlert(`${payload.name} started to scan`, 'success', getUniqueId());
-    //   queryClient.invalidateQueries({ queryKey: [SOURCES_LIST_QUERY] });
+    axios.post(`https://0.0.0.0:9443/api/v1/sources/?scan=true`, payload, { headers: {"Authorization": `Token ${token}`}})
+    .then(res => {
+      addAlert(`${payload.name} addded successfully`, 'success', getUniqueId());
+      queryClient.invalidateQueries({ queryKey: [SOURCES_LIST_QUERY] });
       setAddSourceModal(undefined);
-    // })
-    // .catch(err => console.error(err));
+    })
+    .catch(err => console.error(err));
   }
 
   const renderToolbar = () => (

@@ -1,8 +1,9 @@
-import { ActionGroup, Button, Checkbox, Form, FormContextProvider, FormGroup, HelperText, Modal, ModalVariant, NumberInput, TextArea, TextContent, TextInput } from '@patternfly/react-core';
+import { ActionGroup, Button, Checkbox, DropdownItem, Form, FormContextProvider, FormGroup, HelperText, Modal, ModalVariant, NumberInput, TextArea, TextContent, TextInput } from '@patternfly/react-core';
 import * as React from 'react';
 import axios from 'axios';
 import { TypeaheadCheckboxes } from 'src/components/TypeaheadCheckboxes';
 import { SourceType } from 'src/types';
+import { SimpleDropdown } from 'src/components/SimpleDropdown';
 
 export interface AddSourceModalProps {
     type: string;
@@ -15,60 +16,84 @@ const AddSourceModal: React.FC<AddSourceModalProps> = ({
     onClose,
     onSubmit
 }) => {
-    const [credOptions, setCredOptions] = React.useState<{value: string, label: string}[]>([]);
+    const [credOptions, setCredOptions] = React.useState<{ value: string, label: string }[]>([]);
     const [credentials, setCredentials] = React.useState<string[]>([]);
     const [useParamiko, setUseParamiko] = React.useState<boolean>(false);
+    const [sslVerify, setSslVerify] = React.useState<boolean>(true);
+    const [sslProtocol, setSslProtocol] = React.useState<string>('SSLv23');
 
     const typeValue = type.split(' ').shift()?.toLowerCase();
-    //example payload:
-    const payload = {
-        "source_type": typeValue,
-        "credentials": credentials,
-        "hosts": [
-            "124.124.142"
-        ],
-        "name": "network source name",
-        "port": "23",
-        "options": {
-            "use_paramiko": true
-        }
-    }
-    //nonnetwork, url sources/?scan=true
-    const payload2 = {
-        "source_type": typeValue,
-        "credentials": [
-            2
-        ],
-        "hosts": [
-            "123.123.123"
-        ],
-        "name": "vcenter source name",
-        "port": 443,
-        "options": {
-            "ssl_cert_verify": true,
-            "ssl_protocol": "SSLv23",
-            "disable_ssl": false
-        }
-    }
+    const isNetwork = typeValue === "network";
+    // //example payload:
+    // const payload = {
+    //     "source_type": typeValue,
+    //     "credentials": credentials,
+    //     "hosts": [
+    //         "124.124.142"
+    //     ],
+    //     "name": "network source name",
+    //     "port": "23",
+    //     "options": {
+    //         "use_paramiko": true
+    //     }
+    // }
+    // //nonnetwork, url sources/?scan=true
+    // const payload2 = {
+    //     "source_type": typeValue,
+    //     "credentials": [
+    //         2
+    //     ],
+    //     "hosts": [
+    //         "123.123.123"
+    //     ],
+    //     "name": "vcenter source name",
+    //     "port": 443,
+    //     "options": {
+    //         "ssl_cert_verify": true,
+    //         "ssl_protocol": "SSLv23",
+    //         "disable_ssl": false
+    //     }
+    // }
+    // const payload3 = {
+    //     "source_type": "vcenter",
+    //     "credentials": [
+    //         1
+    //     ],
+    //     "hosts": [
+    //         "123.123.13"
+    //     ],
+    //     "name": "vcent 1271122",
+    //     "port": 443,
+    //     "options": {
+    //         "ssl_cert_verify": false,
+    //         "disable_ssl": true
+    //     }
+    // }
     React.useEffect(() => {
         axios.get(
             `https://0.0.0.0:9443/api/v1/credentials/?cred_type=${typeValue}`,
-            { headers: { "Authorization": `Token ${localStorage.getItem('authToken')}`}}
+            { headers: { "Authorization": `Token ${localStorage.getItem('authToken')}` } }
         ).then(res => {
-            setCredOptions(res.data.results.map(o => ({label: o.name, value: ""+o.id})));
+            setCredOptions(res.data.results.map(o => ({ label: o.name, value: "" + o.id })));
         }).catch(err => console.error(err));
     }, [])
 
     const onAdd = (values) => {
         const payload = {
             "source_type": typeValue,
-            "credentials": credentials,
+            "credentials": credentials.map(c => Number(c)),
             "hosts": values['hosts'].split(','),
             "name": values['name'],
-            "port": values['port'],
-            "options": {
-                "use_paramiko": useParamiko
-            }
+            "port": !isNetwork ? '443' : values['port'] || '22',
+            "options": !isNetwork ?
+                {
+                    "ssl_cert_verify": sslProtocol !== "Disable SSL" && sslVerify,
+                    "disable_ssl": sslProtocol === "Disable SSL",
+                    ...(sslProtocol !== "Disable SSL" && {"ssl_protocol": sslProtocol})
+                } : 
+                {
+                    "use_paramiko": useParamiko
+                }
         };
         onSubmit(payload);
     }
@@ -94,28 +119,41 @@ const AddSourceModal: React.FC<AddSourceModalProps> = ({
                                 onChange={(ev) => { setValue('name', (ev.target as HTMLInputElement).value) }}
                             />
                         </FormGroup>
-                        <FormGroup label="Search addresses" isRequired fieldId="hosts">
-                            <TextArea
-                                placeholder='Enter values separated by commas'
-                                value={getValue('hosts')}
-                                onChange={(_ev, val) => setValue('hosts', val)}
-                                isRequired
-                                id="source-hosts"
-                                name="hosts"
-                            />
-                            <HelperText>Type IP addresses, IP ranges, and DNS host names. Wildcards are valid. Use CIDR or Ansible notation for ranges.</HelperText>
-                        </FormGroup>
-                        <FormGroup label="Port" fieldId="port">
-                            <TextInput
-                                value={getValue('port')}
-                                placeholder="Optional"
-                                type="text"
-                                id="source-port"
-                                name="port"
-                                onChange={(ev) => { console.log(credOptions); setValue('port', (ev.target as HTMLInputElement).value) }}
-                            />
-                            <HelperText>Default port is 22.</HelperText>
-                        </FormGroup>
+                        {isNetwork ?
+                            (<><FormGroup label="Search addresses" isRequired fieldId="hosts">
+                                <TextArea
+                                    placeholder='Enter values separated by commas'
+                                    value={getValue('hosts')}
+                                    onChange={(_ev, val) => setValue('hosts', val)}
+                                    isRequired
+                                    id="source-hosts"
+                                    name="hosts"
+                                />
+                                <HelperText>Type IP addresses, IP ranges, and DNS host names. Wildcards are valid. Use CIDR or Ansible notation for ranges.</HelperText>
+                            </FormGroup>
+                                <FormGroup label="Port" fieldId="port">
+                                    <TextInput
+                                        value={getValue('port')}
+                                        placeholder="Optional"
+                                        type="text"
+                                        id="source-port"
+                                        name="port"
+                                        onChange={(ev) => { console.log(credOptions); setValue('port', (ev.target as HTMLInputElement).value) }}
+                                    />
+                                    <HelperText>Default port is 22</HelperText>
+                                </FormGroup>
+                            </>) :
+                            (<FormGroup label="IP address or hostname" isRequired fieldId="hosts">
+                                <TextInput
+                                    value={getValue('hosts')}
+                                    onChange={(_ev, val) => setValue('hosts', val)}
+                                    isRequired
+                                    id="source-hosts"
+                                    name="hosts"
+                                />
+                                <HelperText>Enter an IP address or hostname (Default port is 443)</HelperText>
+                            </FormGroup>)
+                        }
                         <FormGroup
                             label="Credential"
                             fieldId="credentials"
@@ -126,18 +164,51 @@ const AddSourceModal: React.FC<AddSourceModalProps> = ({
                                 options={credOptions}
                             />
                         </FormGroup>
-                        <FormGroup
-                            label=""
-                            fieldId="paramiko"
-                        >
-                            <Checkbox
-                                key='paramiko'
-                                label='Connect using Paramiko instead of Open SSH'
-                                id='paramiko'
-                                isChecked={useParamiko}
-                                onChange={(_ev, ch) => setUseParamiko(ch)}
-                            />
-                        </FormGroup>
+                        {isNetwork ?
+                            (
+                                <FormGroup
+                                    label=""
+                                    fieldId="paramiko"
+                                >
+                                    <Checkbox
+                                        key='paramiko'
+                                        label='Connect using Paramiko instead of Open SSH'
+                                        id='paramiko'
+                                        isChecked={useParamiko}
+                                        onChange={(_ev, ch) => setUseParamiko(ch)}
+                                    />
+                                </FormGroup>
+                            ) :
+                            (<>
+                                <FormGroup
+                                    label="Connection"
+                                    fieldId="connection"
+                                >
+                                    <SimpleDropdown
+                                        isFullWidth
+                                        label={sslProtocol}
+                                        variant={'default'}
+                                        dropdownItems={['SSLv23', 'TLSv1', 'TLSv1.1', 'TLSv1.2', 'Disable SSL'].map(s => (
+                                            <DropdownItem onClick={() => setSslProtocol(s)}>{s}</DropdownItem>
+                                        ))}
+                                    />
+                                </FormGroup>
+                                <FormGroup
+                                    label=""
+                                    fieldId="ssl_verify"
+                                >
+                                    <Checkbox
+                                        key='ssl_verify'
+                                        label='Verify SSL certificate'
+                                        id='ssl_verify'
+                                        isDisabled={sslProtocol === 'Disable SSL'}
+                                        isChecked={sslProtocol !== 'Disable SSL' && sslVerify}
+                                        onChange={(_ev, ch) => setSslVerify(ch)}
+                                    />
+                                </FormGroup>
+                            </>)
+                        }
+
                         <ActionGroup>
                             <Button variant="primary" onClick={() => onAdd({ ...values })}>Save</Button>
                             <Button variant="link" onClick={onClose}>Cancel</Button>
