@@ -312,7 +312,11 @@ const SourcesListView: React.FunctionComponent = () => {
       addAlert(`Source "${source.name}" deleted successfully`, 'success', getUniqueId());
       queryClient.invalidateQueries({ queryKey: [SOURCES_LIST_QUERY] });
     })
-    .catch(err => console.error(err));
+    .catch(err => {
+      console.error(err);
+      addAlert(`Error removing source ${source.name}. ${err?.response?.data?.detail}`, 'danger', getUniqueId());
+    })
+    .finally(() => setPendingDeleteSource(undefined));
   }
 
   const renderToolbar = () => (
