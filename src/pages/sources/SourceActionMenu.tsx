@@ -11,17 +11,16 @@ import { SourceType } from '../../types';
 
 interface SourceActionMenuProps {
   source: SourceType;
+  onDeleteSource: (source: SourceType) => void;
+  onEditSource: (source: SourceType) => void;
 }
 
-const SourceActionMenu: React.FC<SourceActionMenuProps> = ({ source }) => {
+const SourceActionMenu: React.FC<SourceActionMenuProps> = ({
+    source,
+    onDeleteSource,
+    onEditSource
+  }) => {
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
-
-  const onEditSource = () => {
-    alert(`Edit: ${source.name}`);
-  };
-  const onDeleteSource = () => {
-    alert(`Delete: ${source.name}`);
-  };
 
   return (
     <Dropdown
@@ -29,9 +28,9 @@ const SourceActionMenu: React.FC<SourceActionMenuProps> = ({ source }) => {
       isOpen={isOpen}
       onSelect={(e, value) => {
         if (value === 'edit') {
-          onEditSource();
+          onEditSource(source);
         } else if (value === 'delete') {
-          onDeleteSource();
+          onDeleteSource(source);
         }
       }}
       onOpenChange={setIsOpen}

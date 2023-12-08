@@ -83,6 +83,7 @@ const SourcesListView: React.FunctionComponent = () => {
   const [sortDirection] = useSearchParam('sortDirection') || ['asc'];
   const [filters] = useSearchParam('filters');
   const [selectedItems, setSelectedItems] = React.useState<SourceType[]>([]);
+  const [pendingDeleteSource, setPendingDeleteSource] = React.useState<SourceType>();
   const queryClient = useQueryClient();
   const currentQuery = React.useRef<string>('');
   const emptyConnectionData = {successful: [], failure: [], unreachable: []};
@@ -294,9 +295,22 @@ const SourcesListView: React.FunctionComponent = () => {
     console.log('addsource', payload);
     axios.post(`https://0.0.0.0:9443/api/v1/sources/?scan=true`, payload, { headers: {"Authorization": `Token ${token}`}})
     .then(res => {
-      addAlert(`${payload.name} addded successfully`, 'success', getUniqueId());
+      addAlert(`${payload.name} added successfully`, 'success', getUniqueId());
       queryClient.invalidateQueries({ queryKey: [SOURCES_LIST_QUERY] });
       setAddSourceModal(undefined);
+    })
+    .catch(err => console.error(err));
+  }
+
+  const onEditSource = (source: SourceType) => {
+    console.log("edit source", source);
+  }
+
+  const onDeleteSource = (source: SourceType) => {
+    axios.delete(`https://0.0.0.0:9443/api/v1/sources/${source.id}/`, { headers: {"Authorization": `Token ${token}`}})
+    .then(res => {
+      addAlert(`Source "${source.name}" deleted successfully`, 'success', getUniqueId());
+      queryClient.invalidateQueries({ queryKey: [SOURCES_LIST_QUERY] });
     })
     .catch(err => console.error(err));
   }
@@ -437,7 +451,7 @@ const SourcesListView: React.FunctionComponent = () => {
                   </Td>
                 </TableRowContentWithBatteries>
                 <Td isActionCell {...getTdProps({ columnKey: 'actions' })}>
-                  <SourceActionMenu source={source} />
+                  <SourceActionMenu source={source} onEditSource={onEditSource} onDeleteSource={setPendingDeleteSource} />
                 </Td>
               </Tr>
             ))}
@@ -502,6 +516,25 @@ const SourcesListView: React.FunctionComponent = () => {
               )) : (<ListItem>N/A</ListItem>)}
             </List>
           </Modal>
+      )}
+
+      {!!pendingDeleteSource && (
+            <Modal
+              variant={ModalVariant.small}
+              title="Permanently delete source"
+              isOpen={!!pendingDeleteSource}
+              onClose={() => setPendingDeleteSource(undefined)}
+              actions={[
+                <Button key="confirm" variant="danger" onClick={() => onDeleteSource(pendingDeleteSource)}>
+                  Delete
+                </Button>,
+                <Button key="cancel" variant="link" onClick={() => setPendingDeleteSource(undefined)}>
+                  Cancel
+                </Button>
+              ]}
+            >
+              Are you sure you want to delete the source "{pendingDeleteSource.name}"
+            </Modal>
       )}
 
       {addSourceModal && (
